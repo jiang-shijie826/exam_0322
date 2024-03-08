@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jiang.mapper.CrimesRiskTopMapper">
+
+ <select id="queryCrimesRiskTop" resultType="RiskTop">
+     SELECT
+         rnk, year,city, riskIndex
+     FROM
+     (
+         SELECT
+         row_number() over (
+         PARTITION BY DATE_FORMAT( start_date_time, '%Y' )
+         ORDER BY
+         DATE_FORMAT( start_date_time, '%Y' ),
+         FORMAT( COUNT( incident_id ) / 365 + SUM( victims ) / 365, 2 ) DESC
+         ) AS rnk,
+         DATE_FORMAT( start_date_time, '%Y' ) AS YEAR,
+         city,
+         FORMAT( COUNT( incident_id ) / 365 + SUM( victims ) / 365, 2 ) AS riskIndex
+         FROM
+         crimes
+         GROUP BY
+         YEAR,
+         city
+     ) a
+     WHERE
+     rnk <![CDATA[ <= ]]>  3;
+ </select>
+
+</mapper>
